@@ -8,17 +8,19 @@ cat = pd.read_excel("cat.xlsx")
 cat['H_Level'] = cat['Title'].apply(lambda x: x.count('-'))
 cat['Title_Clean'] = cat['Title'].str.replace('-', '').str.strip()
 
-# Initialize variables to store the current H1, H2, and H3
+# Initialize variables to store the current H1, H2, H3, and H4
 current_h1 = None
 current_h2 = None
 current_h3 = None
+current_h4 = None
 
-# Create lists to store the H1, H2, and H3 values for each row
+# Create lists to store the H1, H2, H3, and H4 values for each row
 h1_list = []
 h2_list = []
 h3_list = []
+h4_list = []
 
-# Iterate over the rows of cat.xlsx to get the H1, H2, and H3 titles
+# Iterate over the rows of cat.xlsx to get the H1, H2, H3, and H4 titles
 for index, row in cat.iterrows():
     title = row['Title']
     h_level = row['H_Level']
@@ -29,28 +31,37 @@ for index, row in cat.iterrows():
         current_h1 = row['Title_Clean']
         current_h2 = None  # Reset H2 when a new H1 is found
         current_h3 = None  # Reset H3 when a new H1 is found
+        current_h4 = None  # Reset H4 when a new H1 is found
     
     # H2: One dash (H_Level == 1)
     elif h_level == 1:
         current_h2 = row['Title_Clean']
         current_h3 = None  # Reset H3 when a new H2 is found
+        current_h4 = None  # Reset H4 when a new H2 is found
     
     # H3: Two dashes (H_Level == 2)
     elif h_level == 2:
         current_h3 = row['Title_Clean']
+        current_h4 = None  # Reset H4 when a new H3 is found
     
-    # Append the current values of H1, H2, and H3 to the lists
+    # H4: Three dashes (H_Level == 3)
+    elif h_level == 3:
+        current_h4 = row['Title_Clean']
+    
+    # Append the current values of H1, H2, H3, and H4 to the lists
     h1_list.append(current_h1)
     h2_list.append(current_h2)
     h3_list.append(current_h3)
+    h4_list.append(current_h4)
 
-# Add the H1, H2, and H3 lists to the cat DataFrame
+# Add the H1, H2, H3, and H4 lists to the cat DataFrame
 cat['H1'] = h1_list
 cat['H2'] = h2_list
 cat['H3'] = h3_list
+cat['H4'] = h4_list
 
-# Now we will map the H1, H2, and H3 back to the test_icd.xlsx based on the ChapterNo and Code
-# Create a dictionary to map chapter numbers and codes to H1, H2, H3
+# Now we will map the H1, H2, H3, and H4 back to the test_icd.xlsx based on the ChapterNo and Code
+# Create a dictionary to map chapter numbers and codes to H1, H2, H3, and H4
 h_mapping = {}
 
 for _, row in cat.iterrows():
@@ -61,31 +72,34 @@ for _, row in cat.iterrows():
     h_mapping[(chapter_no, code)] = {
         'H1': row['H1'],
         'H2': row['H2'],
-        'H3': row['H3']
+        'H3': row['H3'],
+        'H4': row['H4']
     }
 
-# Initialize the columns for H1, H2, H3 in test_icd
+# Initialize the columns for H1, H2, H3, and H4 in test_icd
 test_icd['H1'] = None
 test_icd['H2'] = None
 test_icd['H3'] = None
+test_icd['H4'] = None
 
-# Now we will iterate over the test_icd file and assign the H1, H2, H3 based on the mapping
+# Now we will iterate over the test_icd file and assign the H1, H2, H3, and H4 based on the mapping
 for index, row in test_icd.iterrows():
     chapter_no = row['Chapter']
     code = row['Code']
     
-    # Find the matching H1, H2, H3 based on the chapter number and code
+    # Find the matching H1, H2, H3, and H4 based on the chapter number and code
     h_info = h_mapping.get((chapter_no, code), {})
     
-    # Assign H1, H2, and H3 to the test_icd row
+    # Assign H1, H2, H3, and H4 to the test_icd row
     test_icd.at[index, 'H1'] = h_info.get('H1', None)
     test_icd.at[index, 'H2'] = h_info.get('H2', None)
     test_icd.at[index, 'H3'] = h_info.get('H3', None)
+    test_icd.at[index, 'H4'] = h_info.get('H4', None)
 
 # Make sure to keep 'Title_en' and 'Chapter' columns
-final_columns = ['Code', 'Title_en', 'Chapter', 'H1', 'H2', 'H3'] + [col for col in test_icd.columns if col not in ['H1', 'H2', 'H3']]
+final_columns = ['Code', 'Title_en', 'Chapter', 'H1', 'H2', 'H3', 'H4'] + [col for col in test_icd.columns if col not in ['H1', 'H2', 'H3', 'H4']]
 
 # Save the updated test_icd.xlsx file with the desired columns
-test_icd.to_excel("updated_test_icd2.xlsx", columns=final_columns, index=False)
+test_icd.to_excel("updated_test_icd_with_H4.xlsx", columns=final_columns, index=False)
 
-print("H1, H2, and H3 columns have been successfully updated and saved to updated_test_icd.xlsx, including Title_en and Chapter.")
+print("H1, H2, H3, and H4 columns have been successfully updated and saved to updated_test_icd_with_H4.xlsx, including Title_en and Chapter.")
