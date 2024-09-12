@@ -425,34 +425,30 @@ PAGE_SIZE = 5
 @api_view(['GET'])
 def disease_search(request):
     try:
-        # Retrieve search term, ICD version, and page number from request
         search_term = request.GET.get('search', '')
-        icd_version = request.GET.get('icd_version', '').lower()  #'9', '10', or '11'
+        icd_version = request.GET.get('icd_version', '').lower()  # '9', '10', or '11'
         page = int(request.GET.get('page', 1))
 
-        # Map icd_version to the corresponding field name in the index
         icd_field_map = {
-            '9': 'icd9Code',
-            '10': 'icd10Code',
-            '11': 'icd11Code'
+            '9': 'icd9Code.keyword',
+            '10': 'icd10Code.keyword',
+            '11': 'icd11Code.keyword'
         }
         icd_field = icd_field_map.get(icd_version)
 
-        # Initialize Elasticsearch search object
-        s = Search(using=es, index='icd_codes_index')
+        s = Search(using=es, index='icd_codes_index_02')
 
-        # Build the search query
         query = []
 
         # Search by the selected ICD version if provided
         if icd_field and search_term:
             query.append({
-                "match": {
-                    icd_field: search_term
+                "terms": { 
+                    icd_field: [search_term]
                 }
             })
 
-        # Search by title_en or title_ar if provided
+        # Search by title_en, title_ar, or index terms if provided
         if search_term:
             query.append({
                 "multi_match": {
@@ -466,15 +462,15 @@ def disease_search(request):
         if query:
             s = s.query("bool", should=query, minimum_should_match=1)
 
-        # Collapse results by 'code' to avoid duplicates
+        # Collapse results by 'Code' to avoid duplicates
         s = s.extra(collapse={"field": "Code.keyword"})
 
         # Apply pagination
         start = (page - 1) * PAGE_SIZE
-        end = start + PAGE_SIZE
-        s = s[start:end]
+        s = s[start:start + PAGE_SIZE]
 
         # Execute search and get results
+        logger.info(f"Search Query: {s.to_dict()}")  # Log the search query for debugging
         response = s.execute()
         results = [hit.to_dict() for hit in response]
         total_count = response.hits.total.value
@@ -494,4 +490,5 @@ def disease_search(request):
     except Exception as e:
         logger.error("Error occurred during search: %s", e)
         return Response({'error': str(e)}, status=500)
+
 # --------------- END OF DISEASES API ------------------------------

@@ -10,7 +10,7 @@ class Command(BaseCommand):
         # Initialize MongoDB client and connect to the database
         mongo_client = MongoClient('mongodb://localhost:27017/')
         mongo_db = mongo_client['mic_db']
-        mongo_collection = mongo_db['icd_data']  
+        mongo_collection = mongo_db['ICDs']  
 
         # Initialize Elasticsearch client
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
@@ -21,20 +21,37 @@ class Command(BaseCommand):
         # Prepare bulk data for Elasticsearch
         actions = []
         for document in documents:
+            # Fetch the fields that are lists (already lists in MongoDB)
+            icd9Code = document.get("icd9Code", [])
+            icd10Code = document.get("icd10Code", [])
+            icd11Code = document.get("icd11Code", [])
+            index_terms_en = document.get("IndexTerms_en", [])
+            index_terms_ar = document.get("IndexTerms_ar", [])
+
+            # Prepare the action for Elasticsearch bulk indexing
             action = {
-                "_index": "icd_codes_index",  
-                "_id": str(document.get("_id")),
+                "_index": "icd_codes_index_02",  # Index name
+                "_id": str(document.get("_id")),  # Use the MongoDB document ID
                 "_source": {
-                    "icd9Code": document.get("icd9Code"),
-                    "icd10Code": document.get("icd10Code"),
-                    "icd11Code": document.get("icd11Code"),
+                    "H1": document.get("H1"),
+                    "H2": document.get("H2"),
+                    "H3": document.get("H3"),
+                    "H4": document.get("H4"),
+                    "H5": document.get("H5"),
                     "Code": document.get("Code"),
+                    "icd9Code": icd9Code,
+                    "icd10Code": icd10Code,
+                    "icd11Code": icd11Code,
+                    "BlockLevel": document.get("BlockLevel"),
                     "Title_en": document.get("Title_en"),
                     "Title_ar": document.get("Title_ar"),
+                    "Chapter": document.get("Chapter"),
+                    "Definition_en": document.get("Definition_en"),
+                    "Definition_ar": document.get("Definition_ar"),
+                    "IndexTerms_en": index_terms_en,
+                    "IndexTerms_ar": index_terms_ar,
                     "Inclusion": document.get("Inclusion"),
                     "Exclusion": document.get("Exclusion"),
-                    "IndexTerms_en": document.get("IndexTerms_en"),
-                    "IndexTerms_ar": document.get("IndexTerms_ar"),
                 }
             }
             actions.append(action)

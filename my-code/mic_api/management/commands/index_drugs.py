@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 
 MONGO_URI = 'mongodb://localhost:27017/'
 DB_NAME = 'mic_db'
-COLLECTION_NAME = 'icd_data'
+COLLECTION_NAME = 'ICDS'
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
