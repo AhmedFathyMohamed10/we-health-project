@@ -1,75 +1,56 @@
 from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl.registries import registry
-import pymongo
 
-# Define the Elasticsearch index
+# Define the Elasticsearch index for drugs
 drug_index = Index('drugs')
+
+# Define the Elasticsearch index for ICDs (or any other collection)
+icd_index = Index('icds')
+
+# --------------------------------------------------------
+# Drug Document (For 'drugs_coll' collection)
+# --------------------------------------------------------
 
 @drug_index.document
 class DrugDocument(Document):
     class Django:
-        # The name of the MongoDB collection
+        # The name of the MongoDB collection for drugs
         model = 'drugs_coll'
 
     class Index:
+        # The name of the Elasticsearch index
         name = 'drugs'
+        # Settings for the Elasticsearch index
         settings = {
             "number_of_shards": 1,
             "number_of_replicas": 0
         }
 
-    # Fields that i want to index in Elasticsearch
+    # Fields that I want to index in Elasticsearch for the drugs collection
     brand_name = fields.TextField(attr='openfda.brand_name')
     generic_name = fields.TextField(attr='openfda.generic_name')
+    manufacturer_name = fields.TextField(attr='openfda.manufacturer_name')
 
+# --------------------------------------------------------
+# ICD Document (For 'ICDs' collection)
+# --------------------------------------------------------
 
+@icd_index.document
+class IcdDocument(Document):
+    class Django:
+        # The name of the MongoDB collection for ICDs
+        model = 'ICDs'
 
-# # DISEASES DOCUMENTS
-# # Define the Elasticsearch index
-# diseases_index = Index('diseases_index')
+    class Index:
+        # The name of the Elasticsearch index for ICDs
+        name = 'icds'
+        # Settings for the Elasticsearch index
+        settings = {
+            "number_of_shards": 1,
+            "number_of_replicas": 0
+        }
 
-# @diseases_index.document
-# class DiseaseDocument(Document):
-#     class Index:
-#         name = 'diseases_index'
-#         settings = {
-#             "number_of_shards": 1,
-#             "number_of_replicas": 0
-#         }
-
-#     # Fields to be indexed in Elasticsearch
-#     code = fields.TextField()
-#     title_en = fields.TextField()
-#     title_ar = fields.TextField()
-#     definition_en = fields.TextField()
-#     definition_ar = fields.TextField()
-#     index_terms_en = fields.TextField(multi=True)
-#     index_terms_ar = fields.TextField(multi=True)
-
-#     def get_queryset(self):
-#         # Use MongoDB client to get data
-#         client = pymongo.MongoClient("mongodb://localhost:27017/")
-#         db = client['mic_db'] 
-#         collection = db['diseases_coll']
-#         return collection.find()  # This fetches all documents from the collection
-
-#     def prepare_code(self, instance):
-#         return instance.get('code', '')
-
-#     def prepare_title_en(self, instance):
-#         return instance.get('title', {}).get('en', '')
-
-#     def prepare_title_ar(self, instance):
-#         return instance.get('title', {}).get('ar', '')
-
-#     def prepare_definition_en(self, instance):
-#         return instance.get('definition', {}).get('en', '')
-
-#     def prepare_definition_ar(self, instance):
-#         return instance.get('definition', {}).get('ar', '')
-
-#     def prepare_index_terms_en(self, instance):
-#         return [term.get('label', {}).get('en', '') for term in instance.get('indexTerm', [])]
-
-#     def prepare_index_terms_ar(self, instance):
-#         return [term.get('label', {}).get('ar', '') for term in instance.get('indexTerm', [])]
+    # Fields that I want to index in Elasticsearch for the ICDs collection
+    icd_code = fields.TextField(attr='Code')
+    title_en = fields.TextField(attr='Title_en')
+    title_ar = fields.TextField(attr='Title_ar')

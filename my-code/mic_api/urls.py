@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('drugs/', views.product_search, name='product_search'),
+    path('drugs/', views.drug_search, name='drug_search'),
     path('drugs/<str:set_id>/', views.product_detail, name='product_detail'),
     path('distinct-values/', views.distinct_values, name='distinct_values'),
     # Drug-Drug interactions
