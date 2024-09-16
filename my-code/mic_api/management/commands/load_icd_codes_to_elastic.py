@@ -27,11 +27,12 @@ class Command(BaseCommand):
             icd11Code = document.get("icd11Code", [])
             index_terms_en = document.get("IndexTerms_en", [])
             index_terms_ar = document.get("IndexTerms_ar", [])
+            CombinedCodes = document.get("CombinedCodes", [])
 
             # Prepare the action for Elasticsearch bulk indexing
             action = {
-                "_index": "icd_codes_index_02",  # Index name
-                "_id": str(document.get("_id")),  # Use the MongoDB document ID
+                "_index": "icd_codes_index_03",  # Index name
+                "_id": str(document.get("_id")),  
                 "_source": {
                     "H1": document.get("H1"),
                     "H2": document.get("H2"),
@@ -50,6 +51,7 @@ class Command(BaseCommand):
                     "Definition_ar": document.get("Definition_ar"),
                     "IndexTerms_en": index_terms_en,
                     "IndexTerms_ar": index_terms_ar,
+                    "CombinedCodes": CombinedCodes,
                     "Inclusion": document.get("Inclusion"),
                     "Exclusion": document.get("Exclusion"),
                 }
