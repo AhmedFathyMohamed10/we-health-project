@@ -297,7 +297,7 @@ def disease_search(request):
         page = int(request.GET.get('page', 1))
 
         # Initialize Elasticsearch search object
-        s = Search(using=es, index='icd_codes_index_03')
+        s = Search(using=es, index='icd_codes_index_04')
 
         # Build the search query
         query = []
@@ -309,7 +309,7 @@ def disease_search(request):
                 "multi_match": {
                     "query": search_term,
                     "fields": ['CombinedCodes', 'Title_en', 'Title_ar'],
-                    "fuzziness": "AUTO"  # Use fuzziness for better matching on text fields
+                    # "fuzziness": "AUTO"  # Use fuzziness for better matching on text fields
                 }
             })
 
