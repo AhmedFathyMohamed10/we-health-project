@@ -309,7 +309,7 @@ def disease_search(request):
                 "multi_match": {
                     "query": search_term,
                     "fields": ['CombinedCodes', 'Title_en', 'Title_ar'],
-                    # "fuzziness": "AUTO"  # Use fuzziness for better matching on text fields
+                    "fuzziness": "AUTO"  # Use fuzziness for better matching on text fields
                 }
             })
 
