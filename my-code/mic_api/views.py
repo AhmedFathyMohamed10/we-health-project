@@ -7,6 +7,9 @@ import logging
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from django.conf import settings
+from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
+from .models import ProcedureCode
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,7 @@ icd_collection = db[ICD_COLLECTION]
 # Drop existing indexes to avoid conflicts
 drug_collection.drop_indexes()
 
-# Create text search index for text searching 
+# Create text search index for text searching
 indexes = [
     IndexModel([
         ('openfda.brand_name', TEXT),
@@ -68,7 +71,7 @@ PAGE_SIZE = 10
 @api_view(['GET'])
 def drug_search(request):
     try:
-        search = request.GET.get('search', '')
+        search = request.GET.get('q', '')
         page = int(request.GET.get('page', 1))
 
         s = Search(using=es, index='drugs')
@@ -293,11 +296,11 @@ PAGE_SIZE = 5
 @api_view(['GET'])
 def disease_search(request):
     try:
-        search_term = request.GET.get('search', '')
+        search_term = request.GET.get('q', '')
         page = int(request.GET.get('page', 1))
 
         # Initialize Elasticsearch search object
-        s = Search(using=es, index='icd_codes_index_04')
+        s = Search(using=es, index='icd_codes_index_05')
 
         # Build the search query
         query = []
@@ -349,3 +352,61 @@ def disease_search(request):
         return Response({'error': str(e)}, status=500)
 
 # --------------- END OF DISEASES API ------------------------------
+
+
+# ------------------START OF CPT CODES LOGIC------------------------
+PAGE_SIZE = 5
+
+@api_view(['GET'])
+def cpt_search(request):
+    try:
+        # Fetch search term and page number from the request
+        search_term = request.GET.get('q', '')
+        page = int(request.GET.get('page', 1))
+
+        # Initialize query for searching the CPT codes or procedure descriptions
+        query = Q()
+
+        if search_term:
+            # Search CPT codes or procedure descriptions in MongoDB
+            query = Q(cpt_codes__icontains=search_term) | Q(procedure_code_descriptions__icontains=search_term)
+
+        # Fetch data from MongoDB using the 'default' database (MongoDB is set as 'default')
+        procedure_codes = ProcedureCode.objects.using('default').filter(query)
+
+        # Pagination setup using DRF's built-in paginator
+        paginator = PageNumberPagination()
+        paginator.page_size = PAGE_SIZE
+
+        # Paginate the results
+        paginated_procedure_codes = paginator.paginate_queryset(procedure_codes, request)
+
+        # Prepare the results to be returned as JSON response
+        results = [
+            {
+                'Procedure_Code_Category': code.procedure_code_category,
+                'CPT_Codes': code.cpt_codes,
+                'Procedure_Code_Descriptions': code.procedure_code_descriptions,
+                'Code_Status': code.code_status,
+                'Operative_Procedure': code.operative_procedure,
+                'Procedure_Description': code.procedure_description
+            }
+            for code in paginated_procedure_codes
+        ]
+
+        # Get pagination metadata and return response
+        response_data = {
+            'results': results,
+            'total_count': paginator.page.paginator.count,
+            'page': page,
+            'total_pages': paginator.page.paginator.num_pages,
+            'page_size': PAGE_SIZE
+        }
+
+        return paginator.get_paginated_response(response_data['results'])
+
+    except Exception as e:
+        # Return error response if something goes wrong
+        return Response({'error': str(e)}, status=500)
+
+# --------------- END OF CPT CODES API -----------------------------

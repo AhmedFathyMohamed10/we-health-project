@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
             # Prepare the action for Elasticsearch bulk indexing
             action = {
-                "_index": "icd_codes_index_04",  # Index name
+                "_index": "icd_codes_index_05",  # Index name
                 "_id": str(document.get("_id")),  
                 "_source": {
                     "H1": document.get("H1"),

@@ -1,5 +1,5 @@
 from pathlib import Path
-from .config import ELASTICSEARCH_DSL, MONGO_CONFIG, CORS_ALLOW_HEADERS, CORS_ALLOWED_ORIGINS, ENGINE, DJONGO_DB_NAME, DJANGO_DB_HOST, DJANGO_DB_PORT, SECRET_KEY, DEBUG, ALLOWED_HOSTS
+from .config import ELASTICSEARCH_DSL, MONGO_CONFIG, CORS_ALLOW_HEADERS, CORS_ALLOWED_ORIGINS, ENGINE, DJONGO_DB_NAME, DJANGO_DB_HOST, DJANGO_DB_PORT, SECRET_KEY, DEBUG, ALLOWED_HOSTS, POSTGRESQL_CONF
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -48,13 +48,18 @@ COLLECTIONS = MONGO_CONFIG['COLLECTION_NAME']
 
 # Database settings
 DATABASES = {
-    'default': {
-        'ENGINE': ENGINE,
-        'NAME': DJONGO_DB_NAME,
-        'HOST': DJANGO_DB_HOST,
-        'PORT': DJANGO_DB_PORT,
-    }
+    "default": POSTGRESQL_CONF,
+    # PostgreSQL database configuration
+    "mongodb": {
+        "ENGINE": ENGINE,
+        "NAME": DJONGO_DB_NAME,
+        "HOST": DJANGO_DB_HOST,
+        "PORT": DJANGO_DB_PORT,
+    },
 }
+
+DATABASE_ROUTERS = ["project.db_router.DatabaseRouter"]
+
 
 # Template settings
 TEMPLATES = [

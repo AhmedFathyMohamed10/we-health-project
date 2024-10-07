@@ -1,7 +1,7 @@
 import json
 
 # Load the JSON file
-with open('latest_icd.json', 'r', encoding='utf-8') as json_file:
+with open('last_file.json', 'r', encoding='utf-8') as json_file:
     data = json.load(json_file)
 
 # Iterate over each item in the JSON and split the necessary fields
@@ -29,7 +29,7 @@ for item in data:
         item['CombinedCodes'] = [code.strip() for code in item['CombinedCodes'].split('&')]
 
 # Save the updated JSON back to a file
-with open('up_latest_icd.json', 'w', encoding='utf-8') as json_file:
+with open('icd.json', 'w', encoding='utf-8') as json_file:
     json.dump(data, json_file, ensure_ascii=False, indent=4)
 
 print("JSON has been successfully updated")

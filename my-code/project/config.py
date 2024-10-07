@@ -33,6 +33,17 @@ DJONGO_DB_NAME = MONGO_CONFIG['DB_NAME']
 DJANGO_DB_HOST = 'localhost'
 DJANGO_DB_PORT = 27017
 
+# POSTGRESQL
+POSTGRESQL_CONF = {
+    "ENGINE": "django.db.backends.postgresql_psycopg2",
+    "NAME": "CPT_PROCEDURES",
+    "USER": "postgres",
+    "PASSWORD": "0101011001",
+    "HOST": "localhost",
+    "PORT": "5432",
+}
+
+# -----------------------------------------
 
 # Keys
 # ----------------------------------------------------

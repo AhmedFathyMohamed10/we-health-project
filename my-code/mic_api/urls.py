@@ -10,4 +10,7 @@ urlpatterns = [
 
     # DISEASES SEARCH
     path('diseases/', views.disease_search, name='disease_search'),
+
+    # CPT
+    path('cpt/', views.cpt_search, name='cpt_search'),
 ]
