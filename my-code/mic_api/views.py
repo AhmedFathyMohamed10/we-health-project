@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from .models import ProcedureCode
+from .serializers import ProcedureCodeSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -364,6 +365,15 @@ def cpt_search(request):
         search_term = request.GET.get('q', '')
         page = int(request.GET.get('page', 1))
 
+        # If it's a POST request, handle data submission
+        if request.method == "POST":
+            serializer = ProcedureCodeSerializer(data=request.data)
+            if serializer.is_valid():
+                # Save new entry if valid
+                serializer.save()
+                return Response(serializer.data, status=201)  # Created
+            return Response(serializer.errors, status=400)  # Bad Request
+
         # Initialize query for searching the CPT codes or procedure descriptions
         query = Q()
 
@@ -381,29 +391,10 @@ def cpt_search(request):
         # Paginate the results
         paginated_procedure_codes = paginator.paginate_queryset(procedure_codes, request)
 
-        # Prepare the results to be returned as JSON response
-        results = [
-            {
-                'Procedure_Code_Category': code.procedure_code_category,
-                'CPT_Codes': code.cpt_codes,
-                'Procedure_Code_Descriptions': code.procedure_code_descriptions,
-                'Code_Status': code.code_status,
-                'Operative_Procedure': code.operative_procedure,
-                'Procedure_Description': code.procedure_description
-            }
-            for code in paginated_procedure_codes
-        ]
+        # Serialize the paginated results
+        serializer = ProcedureCodeSerializer(paginated_procedure_codes, many=True)
 
-        # Get pagination metadata and return response
-        response_data = {
-            'results': results,
-            'total_count': paginator.page.paginator.count,
-            'page': page,
-            'total_pages': paginator.page.paginator.num_pages,
-            'page_size': PAGE_SIZE
-        }
-
-        return paginator.get_paginated_response(response_data['results'])
+        return paginator.get_paginated_response(serializer.data)
 
     except Exception as e:
         # Return error response if something goes wrong

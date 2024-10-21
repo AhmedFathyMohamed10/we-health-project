@@ -1,7 +1,43 @@
-# from rest_framework import serializers
-# from .models import Product
+from rest_framework import serializers
+from .models import ProcedureCode
 
-# class ProductSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Product
-#         fields = '__all__'
+
+class ProcedureCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProcedureCode
+        fields = "__all__"
+        read_only_fields = [
+            "procedure_code_category",
+            "cpt_codes",
+            "procedure_code_descriptions",
+            "code_status",
+            "operative_procedure",
+            "procedure_description",
+        ]
+
+    # Custom validation logic to prevent updates
+    def update(self, instance, validated_data):
+        raise serializers.ValidationError(
+            "Editing existing procedure codes is not allowed."
+        )
+    
+    def validate_procedure_code_category(self, value):
+        if not value.isupper():
+            raise serializers.ValidationError("Procedure code category must be in uppercase.")
+        return value
+
+    # Optional validation for new entries
+    def validate(self, data):
+        if self.instance:
+            raise serializers.ValidationError(
+                "Modifying existing records is forbidden."
+            )
+
+        # Add any custom validation rules here for new data if needed
+        # Example: Check if the code is already in the system
+        if ProcedureCode.objects.filter(cpt_codes=data.get("cpt_codes")).exists():
+            raise serializers.ValidationError(
+                "A procedure with this CPT code already exists."
+            )
+
+        return data
