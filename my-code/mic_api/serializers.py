@@ -6,14 +6,6 @@ class ProcedureCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcedureCode
         fields = "__all__"
-        read_only_fields = [
-            "procedure_code_category",
-            "cpt_codes",
-            "procedure_code_descriptions",
-            "code_status",
-            "operative_procedure",
-            "procedure_description",
-        ]
 
     # Custom validation logic to prevent updates
     def update(self, instance, validated_data):
@@ -33,5 +25,20 @@ class ProcedureCodeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "A procedure with this CPT code already exists."
             )
+
+        # Check for empty fields (if necessary)
+        required_fields = [
+            "procedure_code_category",
+            "cpt_codes",
+            "procedure_code_descriptions",
+            "code_status",
+            "operative_procedure",
+            "procedure_description",
+        ]
+        for field in required_fields:
+            if not data.get(field):
+                raise serializers.ValidationError(
+                    f"{field.replace('_', ' ').capitalize()} is required and cannot be empty."
+                )
 
         return data
