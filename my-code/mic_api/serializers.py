@@ -21,33 +21,14 @@ class ProcedureCodeSerializer(serializers.ModelSerializer):
             "Editing existing procedure codes is not allowed."
         )
 
-    # Ensure procedure_code_category is uppercase
-    def validate_procedure_code_category(self, value):
-        if not value.isupper():
-            raise serializers.ValidationError(
-                "Procedure code category must be in uppercase."
-            )
-        return value
-
     # Optional validation for new entries
     def validate(self, data):
-        # Ensure no fields are empty for POST requests
-        required_fields = [
-            "procedure_code_category",
-            "cpt_codes",
-            "procedure_code_descriptions",
-            "code_status",
-            "operative_procedure",
-            "procedure_description",
-        ]
+        if self.instance:
+            raise serializers.ValidationError(
+                "Modifying existing records is forbidden."
+            )
 
-        for field in required_fields:
-            if not data.get(field):  # Check if any required field is missing or empty
-                raise serializers.ValidationError(
-                    f"{field.replace('_', ' ').capitalize()} is required and cannot be empty."
-                )
-
-        # Check if the procedure already exists based on CPT code
+        # Add any custom validation rules here for new data if needed
         if ProcedureCode.objects.filter(cpt_codes=data.get("cpt_codes")).exists():
             raise serializers.ValidationError(
                 "A procedure with this CPT code already exists."
