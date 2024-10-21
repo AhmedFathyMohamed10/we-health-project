@@ -358,7 +358,7 @@ def disease_search(request):
 # ------------------START OF CPT CODES LOGIC------------------------
 PAGE_SIZE = 5
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def cpt_search(request):
     try:
         # Fetch search term and page number from the request
